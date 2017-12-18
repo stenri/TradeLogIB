@@ -3,14 +3,14 @@ Python script to dumps trades from IB TWS via API into a .csv file which can the
 
 TradeLogIB python script dumps a list of trades from Interactive Brokers using TWS API interface and stores them into a .csv file. This allows one to import trades into ONE software in "realtime", i.e. there is no need to wait till the end of the trading session e.t.c. It makes the overall trading process much more convenient and pleasurable, and almost eliminates the lack of proper broker integration in OptionNET software.
 
-## Motivation:
+## Motivation
 As you may know, OptionNET Explorer lacks proper broker integration: it can only send orders to the broker but after the order is sent, it lives its own life. ONE does not know when and if the order is filled, at what price, how much commissions are paid and so on. It is assumes user manually downloads trades from the broker and uses Import Wizard to import trades, or just enters trades and commissions manually into Trade Log.
 
 In case of Interactive Brokers user is only able to export broker activity statements after the session is over. So after you place an order and receive a fill you have to wait till the end of the session for activity statements or save the trade into Trade Log and manually enter commissions (this process is very error-prone). 
 
 All this makes trading process much less convenient than it should be. And we need a solution to import trades from a broker Trade Log into ONE without much effort. Here it is: TradeLogIB.py.
 
-## How it works:
+## How it works
 
 * After order is filled in IB, run TradeLogIB.py script, it generates an output file TradeLogIB.csv with a list of trades in OptionXpress format.
 ![tradelog_csv thumb png 0bf7ee9bf90fc9696e9d4b7bc0001e07](https://user-images.githubusercontent.com/2657778/34121901-ad5354b0-e43b-11e7-8d3d-549214b63a1b.png)
