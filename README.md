@@ -60,7 +60,7 @@ old text: The hardest part was to force ONE Import wizard to import the trades p
 * Interactive Brokers API only reports all trades (from all API clients and TWS GUI) to an API client with "master client id". That's why you need to configure TWS and set master client id to be the same both in TWS GUI and in TradeLogIB.py. Otherwise the script will not be able to receive any trades, since my script does not make any trades itself, and all API clients except master client receive only their own trades from TWS API.
  
 ## No guarantees
-**And the last note. The script is provided AS IS. I may not be able to fully support it, answer all questions, investigate and research any problems you may encounter. Also I expect Option Express format to be changed some time in the future, and I may not be around to quickly modify TradeLogIB.py to work with the latest format. So, use the script at your own risk.**
+**And the last note. The script is provided AS IS. I may not be able to fully support it, answer all questions, investigate and research any problems you may encounter. Also I expect OptionXpress format to be changed some time in the future, and I may not be around to quickly modify TradeLogIB.py to work with the latest format. So, use the script at your own risk.**
  
 **That being said, I made my best to ensure the script works and is stable enough for use in production environment. I myself enjoy using TradeLogIB.py for around a month. It made my trading process using ONE and IB very simple. You may post your questions and comments related to my script in this post. I'll try to answer them whenever I have time.**
 
