@@ -20,6 +20,10 @@ All this makes trading process much less convenient than it should be. And we ne
 
 That's all! No need to manually enter commissions, wait till the end of session, or login to Interactive Brokers Account Management.
 
+## Requirements
+* Python 2.7.x;
+* IbPy package (https://github.com/blampe/IbPy).
+
 ## Configuration
 Script requires one-time configuration before use:
 * Install some Python environment. I recommend to use Anaconda, and I use Python 2.7: https://www.anaconda.com/download/
