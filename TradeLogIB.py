@@ -136,7 +136,15 @@ try:
 
             price = math.fabs(float(fill.execution.price))
 
-            commission     = fill.commissionReport.commission
+            if hasattr(fill, 'commissionReport'):
+                commission = fill.commissionReport.commission
+            else:
+                commission = 0
+
+                if not opts.daemon:
+                    logging.warning('Warning: skipping trade as commission detail are not available ({} {} {} {} {})'.format(symbol, desc, action, qty, price))
+        
+                continue       
 
             total_cost     = qty * price + commission + req_fees
             #total_cost     = format(total_cost, '.6f')
