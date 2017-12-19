@@ -21,15 +21,15 @@ All this makes trading process much less convenient than it should be. And we ne
 That's all! No need to manually enter commissions, wait till the end of session, or login to Interactive Brokers Account Management.
 
 ## Requirements
-* Python 2.7.x;
-* IbPy package (https://github.com/blampe/IbPy).
+* Python 3.6.x or higher (for Python 2.7.x see py27 code branch);
+* ib_insync package (https://github.com/erdewit/ib_insync).
 
 ## Configuration
 Script requires one-time configuration before use:
-* Install some Python environment. I recommend to use Anaconda, and I use Python 2.7: https://www.anaconda.com/download/
-* Install IB API: https://www.interactivebrokers.com/en/index.php?f=5041 (needed for IbPy and TradeLogIB.py to work);
+* Install some Python environment. I recommend to use Anaconda, for fresh install you can choose a version with Python 3.6 as default interpreter: https://www.anaconda.com/download/
+* Install IB API: https://www.interactivebrokers.com/en/index.php?f=5041 (needed for ib_insync and TradeLogIB.py to work);
 * Unpack TradeLogIB.zip somewhere on the hard-drive;
-* TradeLogIB.py uses IbPy package: https://github.com/blampe/IbPy  I included IbPy in TradeLogIB repository in ib folder. But in case TradeLogIB.py complains on ib.opt, ib.exp packages missing, just install IbPy into your python environment;
+* TradeLogIB.py uses ib_insync package: https://github.com/erdewit/ib_insync, so install it using "pip3 install -U ib_insync";
 * Configure IB TWS to enable Socket API's, set Socket Port to some value (this should match Python script configuration), set Master API client ID (should also be the same in the script configuration). Below is example of TWS configuration:
 
 ![tws_configuration](https://user-images.githubusercontent.com/2657778/34122189-9e909d56-e43c-11e7-9e9f-36d89e92d8de.png)
