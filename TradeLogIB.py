@@ -175,7 +175,7 @@ try:
                     out.write(trades_map[key])
 
         if opts.daemon:
-            time.sleep(1)
+            ib.sleep(1)
         else:
             break
 
