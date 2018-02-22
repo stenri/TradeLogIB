@@ -101,6 +101,9 @@ try:
 
     trades_map = {}
 
+    if opts.daemon:
+        print('Entering daemon mode...')
+
     while True:
         has_new_data = False
 
@@ -173,6 +176,9 @@ try:
         
                 for key in sorted(trades_map): 
                     out.write(trades_map[key])
+
+            if opts.daemon:
+                print('{} TradeLog updated.'.format(datetime.datetime.now().strftime('%H:%M:%S')))
 
         if opts.daemon:
             ib.sleep(1)
