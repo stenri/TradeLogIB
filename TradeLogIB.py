@@ -111,7 +111,7 @@ try:
             if fill.contract.secType != 'OPT':
                 continue
 
-            dt = datetime.datetime.strptime(fill.execution.time, '%Y%m%d %H:%M:%S')
+            dt = fill.execution.time
 
             if fill.execution.side == 'BOT':
                 action = 'Buy To Open'
