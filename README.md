@@ -28,11 +28,9 @@ That's all! No need to manually enter commissions, wait till the end of session,
 Script requires one-time configuration before use:
 * Install some Python environment. I recommend to use Anaconda, for fresh install you can choose a version with Python 3.6 as default interpreter: https://www.anaconda.com/download/
 * Install IB API: https://www.interactivebrokers.com/en/index.php?f=5041 (needed for ib_insync and TradeLogIB.py to work);
-* Now you need to run the following command from %TWS_API_ROOT%\source\pythonclient\ folder to install IB API Python binding: 
+* Now you need to run the following command from %TWS_API_ROOT%\source\pythonclient\ folder to install IB API Python bindings, where %TWS_API_ROOT% is the root directory of you IB API installation (usually "C:\TWS API"): 
 
-setup.py install
-
-where %TWS_API_ROOT% is the root directory of you IB API installation (usually "C:\TWS API").
+   setup.py install
 
 * Unpack TradeLogIB.zip somewhere on the hard-drive;
 * TradeLogIB.py uses ib_insync package: https://github.com/erdewit/ib_insync, I provide ib_insync code which is guaranteed to work with TradeLogIB, so nothing to install here;
