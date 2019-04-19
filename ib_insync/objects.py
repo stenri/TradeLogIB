@@ -10,29 +10,30 @@ import ibapi.execution
 import ibapi.commission_report
 
 # order conditions are imported as-is from ibapi
-from ibapi.order_condition import (OrderCondition, ExecutionCondition,
+from ibapi.order_condition import (OrderCondition, ExecutionCondition,  # noqa
         OperatorCondition, MarginCondition, ContractCondition, TimeCondition,
         PriceCondition, PercentChangeCondition, VolumeCondition)
 
-from ib_insync.event import Event
+from eventkit import Event
 
 __all__ = (
     'Object ContractDetails ContractDescription '
-    'ComboLeg UnderComp DeltaNeutralContract OrderComboLeg OrderState '
-    'ScannerSubscription SoftDollarTier PriceIncrement '
-    'Execution CommissionReport ExecutionFilter '
+    'ComboLeg DeltaNeutralContract OrderComboLeg OrderState '
+    'SoftDollarTier PriceIncrement Execution CommissionReport '
     'BarList BarDataList RealTimeBarList BarData RealTimeBar '
-    'HistogramData TickAttrib NewsProvider DepthMktDataDescription '
-    'PnL PnLSingle AccountValue RealTimeBar TickData '
+    'HistogramData NewsProvider DepthMktDataDescription '
+    'ScannerSubscription ScanData ScanDataList FundamentalRatios '
+    'ExecutionFilter PnL PnLSingle AccountValue TickData '
     'TickByTickAllLast TickByTickBidAsk TickByTickMidPoint '
     'HistoricalTick HistoricalTickBidAsk HistoricalTickLast '
-    'MktDepthData DOMLevel BracketOrder TradeLogEntry ScanData TagValue '
+    'TickAttrib TickAttribBidAsk TickAttribLast '
+    'MktDepthData DOMLevel BracketOrder TradeLogEntry TagValue '
     'PortfolioItem Position Fill OptionComputation OptionChain Dividends '
     'NewsArticle HistoricalNews NewsTick NewsBulletin ConnectionStats '
     'OrderCondition ExecutionCondition OperatorCondition MarginCondition '
     'ContractCondition TimeCondition PriceCondition PercentChangeCondition '
     'VolumeCondition'
-    ).split()
+).split()
 
 nan = float('nan')
 
@@ -40,14 +41,14 @@ nan = float('nan')
 class Object:
     """
     Base object, with:
-    
+
     * __slots__ to avoid typos;
     * A general constructor;
     * A general string representation;
     * A default equality testing that compares attributes.
     """
-    __slots__ = ()
-    defaults = {}
+    __slots__ = ('__weakref__',)
+    defaults: dict = {}
 
     def __init__(self, *args, **kwargs):
         """
@@ -62,7 +63,7 @@ class Object:
             setattr(self, k, v)
 
     def __repr__(self):
-        clsName = self.__class__.__name__
+        clsName = self.__class__.__qualname__
         kwargs = ', '.join(f'{k}={v!r}' for k, v in self.nonDefaults().items())
         return f'{clsName}({kwargs})'
 
@@ -97,10 +98,10 @@ class Object:
         """
         diff = {}
         for k in self.__class__.defaults:
-            l = getattr(self, k)
-            r = getattr(other, k)
-            if l != r:
-                diff[k] = (l, r)
+            left = getattr(self, k)
+            right = getattr(other, k)
+            if left != right:
+                diff[k] = (left, right)
         return diff
 
     def nonDefaults(self):
@@ -129,18 +130,7 @@ class DynamicObject:
 class ContractDetails(Object):
     defaults = ibapi.contract.ContractDetails().__dict__
     defaults['contract'] = None
-    defaults.pop('summary', None)
-    __slots__ = list(defaults.keys()) + \
-            ['secIdListCount']  # bug in ibapi decoder
-
-    # backwards compatibility with ibapi v9.73.06
-    @property
-    def summary(self):
-        return self.contract
-
-    @summary.setter
-    def summary(self, c):
-        self.contract = c
+    __slots__ = defaults.keys()
 
 
 class ContractDescription(Object):
@@ -156,14 +146,10 @@ class ComboLeg(Object):
 
 class DeltaNeutralContract(Object):
     defaults = dict(
-       conId=0,
-       delta=0.0,
-       price=0.0)
+        conId=0,
+        delta=0.0,
+        price=0.0)
     __slots__ = defaults.keys()
-
-
-# backwards compatibility with ibapi v9.73.06
-UnderComp = DeltaNeutralContract
 
 
 class OrderComboLeg(Object):
@@ -216,6 +202,20 @@ class TickAttrib(Object):
     __slots__ = defaults.keys()
 
 
+class TickAttribBidAsk(Object):
+    defaults = dict(
+        bidPastLow=False,
+        askPastHigh=False)
+    __slots__ = defaults.keys()
+
+
+class TickAttribLast(Object):
+    defaults = dict(
+        pastLimit=False,
+        unreported=False)
+    __slots__ = defaults.keys()
+
+
 class HistogramData(Object):
     defaults = ibapi.common.HistogramData().__dict__
     __slots__ = defaults.keys()
@@ -254,14 +254,20 @@ class PnLSingle(Object):
     __slots__ = defaults.keys()
 
 
+class FundamentalRatios(DynamicObject):
+    """
+    https://interactivebrokers.github.io/tws-api/fundamental_ratios_tags.html
+    """
+    pass
+
+
 class BarList(list):
     """
-    Events:
-        * ``updateEvent(bars, hasNewBar)``
+    Base class for bar lists.
     """
     events = ('updateEvent',)
-    
-    __slots__ = events
+
+    __slots__ = events + ('__weakref__',)
 
     def __init__(self, *args):
         list.__init__(self, *args)
@@ -275,91 +281,163 @@ class BarList(list):
 
 
 class BarDataList(BarList):
-    __slots__ = ('reqId', 'contract', 'endDateTime', 'durationStr',
-            'barSizeSetting', 'whatToShow', 'useRTH', 'formatDate',
-            'keepUpToDate', 'chartOptions')
+    """
+    List of :class:`.BarData` that also stores all request parameters.
+
+    Events:
+
+        * ``updateEvent``
+          (bars: :class:`.BarDataList`, hasNewBar: bool)
+    """
+    __slots__ = (
+        'reqId', 'contract', 'endDateTime', 'durationStr',
+        'barSizeSetting', 'whatToShow', 'useRTH', 'formatDate',
+        'keepUpToDate', 'chartOptions')
 
 
 class RealTimeBarList(BarList):
-    __slots__ = ('reqId', 'contract', 'barSize', 'whatToShow', 'useRTH',
-            'realTimeBarsOptions')
+    """
+    List of :class:`.RealTimeBar` that also stores all request parameters.
+
+    Events:
+
+        * ``updateEvent``
+          (bars: :class:`.RealTimeBarList`, hasNewBar: bool)
+    """
+    __slots__ = (
+        'reqId', 'contract', 'barSize', 'whatToShow', 'useRTH',
+        'realTimeBarsOptions')
 
 
-AccountValue = namedtuple('AccountValue',
+class ScanDataList(list):
+    """
+    List of :class:`.ScanData` that also stores all request parameters.
+
+    Events:
+        * ``updateEvent`` (:class:`.ScanDataList`)
+    """
+    events = ('updateEvent',)
+
+    __slots__ = events + (
+        'reqId', 'subscription', 'scannerSubscriptionOptions',
+        'scannerSubscriptionFilterOptions', '__weakref__')
+
+    def __init__(self, *args):
+        list.__init__(self, *args)
+        Event.init(self, ScanDataList.events)
+
+    def __eq__(self, other):
+        return self is other
+
+    def __hash__(self):
+        return id(self)
+
+
+class TagValue(namedtuple('TagValue', 'tag value')):
+    __slots__ = ()
+
+    def __str__(self):
+        # ibapi serialization depends on this
+        return f'{self.tag}={self.value};'
+
+
+AccountValue = namedtuple(
+    'AccountValue',
     'account tag value currency modelCode')
 
-TickData = namedtuple('TickData',
+TickData = namedtuple(
+    'TickData',
     'time tickType price size')
 
-HistoricalTick = namedtuple('HistoricalTick',
+HistoricalTick = namedtuple(
+    'HistoricalTick',
     'time price size')
 
-HistoricalTickBidAsk = namedtuple('HistoricalTickBidAsk',
-    'time mask priceBid priceAsk sizeBid sizeAsk')
+HistoricalTickBidAsk = namedtuple(
+    'HistoricalTickBidAsk',
+    'time tickAttribBidAsk priceBid priceAsk sizeBid sizeAsk')
 
-HistoricalTickLast = namedtuple('HistoricalTickLast',
-    'time mask price size exchange specialConditions')
+HistoricalTickLast = namedtuple(
+    'HistoricalTickLast',
+    'time tickAttribLast price size exchange specialConditions')
 
-TickByTickAllLast = namedtuple('TickByTickAllLast',
-    'tickType time price size attribs exchange specialConditions')
+TickByTickAllLast = namedtuple(
+    'TickByTickAllLast',
+    'tickType time price size tickAttribLast exchange specialConditions')
 
-TickByTickBidAsk = namedtuple('TickByTickBidAsk',
-    'time bidPrice askPrice bidSize askSize attribs')
+TickByTickBidAsk = namedtuple(
+    'TickByTickBidAsk',
+    'time bidPrice askPrice bidSize askSize tickAttribBidAsk')
 
-TickByTickMidPoint = namedtuple('TickByTickMidPoint',
+TickByTickMidPoint = namedtuple(
+    'TickByTickMidPoint',
     'time midPoint')
 
-MktDepthData = namedtuple('MktDepthData',
+MktDepthData = namedtuple(
+    'MktDepthData',
     'time position marketMaker operation side price size')
 
-DOMLevel = namedtuple('DOMLevel',
+DOMLevel = namedtuple(
+    'DOMLevel',
     'price size marketMaker')
 
-BracketOrder = namedtuple('BracketOrder',
+BracketOrder = namedtuple(
+    'BracketOrder',
     'parent takeProfit stopLoss')
 
-TradeLogEntry = namedtuple('TradeLogEntry',
+TradeLogEntry = namedtuple(
+    'TradeLogEntry',
     'time status message')
 
-PriceIncrement = namedtuple('PriceIncrement',
+PriceIncrement = namedtuple(
+    'PriceIncrement',
     'lowEdge increment')
-    
-ScanData = namedtuple('ScanData',
+
+ScanData = namedtuple(
+    'ScanData',
     'rank contractDetails distance benchmark projection legsStr')
 
-TagValue = namedtuple('TagValue',
-    'tag value')
-
-PortfolioItem = namedtuple('PortfolioItem', (
+PortfolioItem = namedtuple(
+    'PortfolioItem',
     'contract position marketPrice marketValue averageCost '
-    'unrealizedPNL realizedPNL account'))
+    'unrealizedPNL realizedPNL account')
 
-Position = namedtuple('Position',
+Position = namedtuple(
+    'Position',
     'account contract position avgCost')
 
-Fill = namedtuple('Fill',
+Fill = namedtuple(
+    'Fill',
     'contract execution commissionReport time')
 
-OptionComputation = namedtuple('OptionComputation',
+OptionComputation = namedtuple(
+    'OptionComputation',
     'impliedVol delta optPrice pvDividend gamma vega theta undPrice')
 
-OptionChain = namedtuple('OptionChain',
+OptionChain = namedtuple(
+    'OptionChain',
     'exchange underlyingConId tradingClass multiplier expirations strikes')
 
-Dividends = namedtuple('Dividends',
+Dividends = namedtuple(
+    'Dividends',
     'past12Months next12Months nextDate nextAmount')
 
-NewsArticle = namedtuple('NewsArticle',
+NewsArticle = namedtuple(
+    'NewsArticle',
     'articleType articleText')
 
-HistoricalNews = namedtuple('HistoricalNews',
+HistoricalNews = namedtuple(
+    'HistoricalNews',
     'time providerCode articleId headline')
 
-NewsTick = namedtuple('NewsTick',
+NewsTick = namedtuple(
+    'NewsTick',
     'timeStamp providerCode articleId headline extraData')
 
-NewsBulletin = namedtuple('NewsBulletin',
+NewsBulletin = namedtuple(
+    'NewsBulletin',
     'msgId msgType message origExchange')
 
-ConnectionStats = namedtuple('ConnectionStats',
+ConnectionStats = namedtuple(
+    'ConnectionStats',
     'startTime duration numBytesRecv numBytesSent numMsgRecv numMsgSent')

@@ -18,14 +18,16 @@ import re
 import sys
 import math
 import time
+import pytz
 import logging
 import datetime
 import optparse
 import traceback
 
+from tzlocal import get_localzone
 from ib_insync import *
 
-version = '3.00'
+version = '4.00'
 
 def InitLogging():      
     if opts.logLevel > 0:
@@ -42,6 +44,13 @@ def InitLogging():
     ch.setFormatter(formatter)
     ch.setLevel(opts.consoleLogLevel)
     root.addHandler(ch)
+
+def AsTimeZone(dt, src_timezone, dst_timezone):
+        #
+        # NOTE: dt is already localized, so we do not need to call src_timezone.localize(dt) here,
+        #       and we use directly dt as is.
+        #
+        return src_timezone.normalize(dt).astimezone(dst_timezone)
 
 def ConverSymbol_IB2OX(symbol):
     matchObj = re.match('(.+)\s+(.+)', symbol)
@@ -74,6 +83,7 @@ Examples:
 parser.add_option('', '--host',            help='Host to connect to (default: 127.0.0.1).', default='127.0.0.1', action='store')
 parser.add_option('', '--port',            help='Port to connect to (default: 4001).', default='4001', action='store')
 parser.add_option('', '--daemon',          help='Turn on deamon mode (default: False).', default=False, action='store_true')
+parser.add_option('', '--UTC',             help='Store trades in UTC timezone, i.e. do not convert time to Local Time Zone) (default: False).', default=False, action='store_true')
 parser.add_option('', '--clientId',        help='Client Id (default: 0).', default='0', action='store')
 parser.add_option('', '--logLevel',        help='Log level for log file output (DEBUG=10, INFO=20, WARNING=30, ERROR: 40, CRITICAL: 50, default: 0).',  default=0, action='store')
 parser.add_option('', '--consoleLogLevel', help='Log level for console output  (DEBUG=10, INFO=20, WARNING=30, ERROR: 40, CRITICAL: 50, default: 20).', default=30, action='store')
@@ -104,6 +114,9 @@ try:
     if opts.daemon:
         print('Entering daemon mode...')
 
+    src_timezone = pytz.utc
+    dst_timezone = get_localzone()
+
     while True:
         has_new_data = False
 
@@ -112,6 +125,9 @@ try:
                 continue
 
             dt = fill.execution.time
+
+            if not opts.UTC:
+                dt = AsTimeZone(dt, src_timezone, dst_timezone)
 
             if fill.execution.side == 'BOT':
                 action = 'Buy To Open'
