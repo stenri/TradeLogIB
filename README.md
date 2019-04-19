@@ -24,6 +24,23 @@ That's all! No need to manually enter commissions, wait till the end of session,
 * Python 3.6.x or higher (for Python 2.7.x see py27 code branch);
 * ib_insync package (https://github.com/erdewit/ib_insync).
 
+## TradeLogIB 4.0 notes
+I updated script to support modern IB TWS versions. It looks like TWS with version higher than ~ 974.4a reports trade times in UTC time zone instead of Local Time Zone. So TradeLogIB now includes functionality to automatically convert trade times into Local Time Zone to preserve the functionality.
+
+TradeLogIB now depends on two new packages: pytz and tzlocal, which are needed for time zone convertion. You can install them like this:
+pip install pytz
+pip install tzlocal
+
+Also it is critically important to ensure TWS timezone is configured properly to match to Local Time Zone on the system. Otherwise, TWS reports some garbage instead of UTC times. Run TWS and on the Login screen press More Options:
+
+!!!
+
+And then select proper Time Zone (it should match Local Time Zone configured in the operating system options):
+
+!!!
+
+When you update IB TWS, remember to also update TWS API and run "%TWS_API_ROOT%\source\pythonclient\setup.py install" to install the latest Python bindings. Newer TWS builds require newer TWS API.
+
 ## Configuration
 Script requires one-time configuration before use:
 * Install some Python environment. I recommend to use Anaconda, for fresh install you can choose a version with Python 3.7 as default interpreter: https://www.anaconda.com/download/
