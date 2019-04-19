@@ -25,21 +25,24 @@ That's all! No need to manually enter commissions, wait till the end of session,
 * ib_insync package (https://github.com/erdewit/ib_insync).
 
 ## TradeLogIB 4.0 notes
-I updated script to support modern IB TWS versions. It looks like TWS with version higher than ~ 974.4a reports trade times in UTC time zone instead of Local Time Zone. So TradeLogIB now includes functionality to automatically convert trade times into Local Time Zone to preserve the functionality.
+I updated script to support modern IB TWS versions. It looks like TWS with version higher than ~ 974.4a reports trades times in UTC Time Zone instead of Local Time Zone. So TradeLogIB now includes a functionality to automatically convert trade times into Local Time Zone.
 
 TradeLogIB now depends on two new packages: pytz and tzlocal, which are needed for time zone convertion. You can install them like this:
+
 pip install pytz
 pip install tzlocal
 
 Also it is critically important to ensure TWS timezone is configured properly to match to Local Time Zone on the system. Otherwise, TWS reports some garbage instead of UTC times. Run TWS and on the Login screen press More Options:
 
-!!!
+![TWS_Login_Screen](https://user-images.githubusercontent.com/2657778/56426117-b109dd00-62bf-11e9-886e-6f8884af2b4d.png)
 
 And then select proper Time Zone (it should match Local Time Zone configured in the operating system options):
 
-!!!
+![TWS_Login_Screen_More_Options](https://user-images.githubusercontent.com/2657778/56426124-b8c98180-62bf-11e9-930b-ca9be791cced.png)
 
-When you update IB TWS, remember to also update TWS API and run "%TWS_API_ROOT%\source\pythonclient\setup.py install" to install the latest Python bindings. Newer TWS builds require newer TWS API.
+You only need to do this once, and TWS remembers Time Zone.
+
+When you update IB TWS, remember also to update TWS API and run "%TWS_API_ROOT%\source\pythonclient\setup.py install" to install the latest Python bindings. Newer TWS builds require newer TWS API.
 
 ## Configuration
 Script requires one-time configuration before use:
@@ -47,7 +50,7 @@ Script requires one-time configuration before use:
 * Install IB API: https://www.interactivebrokers.com/en/index.php?f=5041 (needed for ib_insync and TradeLogIB.py to work);
 * Now you need to run the following command from %TWS_API_ROOT%\source\pythonclient\ folder to install IB API Python bindings, where %TWS_API_ROOT% is the root directory of you IB API installation (usually "C:\TWS API"): 
 
-   setup.py install
+setup.py install
 
 * Unpack TradeLogIB.zip somewhere on the hard-drive;
 * TradeLogIB.py uses ib_insync package: https://github.com/erdewit/ib_insync, I provide ib_insync code which is guaranteed to work with TradeLogIB, so nothing to install here;
