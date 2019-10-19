@@ -165,7 +165,7 @@ try:
         
                 continue       
 
-            total_cost     = qty * price + commission + req_fees
+            total_cost     = qty * price * 100 + commission + req_fees
             #total_cost     = format(total_cost, '.6f')
 
             #
