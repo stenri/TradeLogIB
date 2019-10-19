@@ -64,15 +64,15 @@ def ConverSymbol_IB2OX(symbol):
     return ticker.ljust(6, '^') + opra_id 
 
 
-ap = argparse.ArgumentParser()
-ap.add_argument('--host',            type=str,  default='127.0.0.1', help='Host to connect to (default: 127.0.0.1).')
-ap.add_argument('--port',            type=int,  default=4001,        help='Port to connect to (default: 4001).')
-ap.add_argument('--clientId',        type=int,  default=0,           help='Client Id (default: 0).')
-ap.add_argument('--daemon',          type=bool, default=False,       help='Turn on deamon mode (default: False).')
-ap.add_argument('--UTC',             type=bool, default=False,       help='Store trades in UTC timezone, i.e. do not convert time to Local Time Zone) (default: False).')
-ap.add_argument('--logLevel',        type=int,  default=0,           help='Log level for log file output (DEBUG=10, INFO=20, WARNING=30, ERROR: 40, CRITICAL: 50, default: 0).')
-ap.add_argument('--consoleLogLevel', type=int,  default=30,          help='Log level for console output  (DEBUG=10, INFO=20, WARNING=30, ERROR: 40, CRITICAL: 50, default: 30).')
-ap.add_argument('--outputFile',      type=str,  default='TradeLogIB.csv', help='Output file (default: TradeLogIB.csv).')
+ap = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+ap.add_argument('--host',            type=str,  default='127.0.0.1',      help='Host to connect to')
+ap.add_argument('--port',            type=int,  default=4001,             help='Port to connect to')
+ap.add_argument('--clientId',        type=int,  default=0,                help='Client Id')
+ap.add_argument('--daemon',                     default=False,            help='Turn on deamon mode', action='store_true')
+ap.add_argument('--UTC',                        default=False,            help='Store trades in UTC timezone, i.e. do not convert time to Local Time Zone)', action='store_true')
+ap.add_argument('--logLevel',        type=int,  default=0,                help='Log level for log file output (DEBUG=10, INFO=20, WARNING=30, ERROR: 40, CRITICAL: 50)')
+ap.add_argument('--consoleLogLevel', type=int,  default=30,               help='Log level for console output  (DEBUG=10, INFO=20, WARNING=30, ERROR: 40, CRITICAL: 50)')
+ap.add_argument('--outputFile',      type=str,  default='TradeLogIB.csv', help='Output file')
 args = ap.parse_args()
 
 InitLogging()
