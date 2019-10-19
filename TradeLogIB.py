@@ -27,7 +27,7 @@ import traceback
 from tzlocal import get_localzone
 from ib_insync import *
 
-version = '4.00'
+version = '4.10'
 
 def InitLogging():      
     if opts.logLevel > 0:
@@ -173,9 +173,9 @@ try:
             #
             # We want output to be sorted by date/time and order_id, so here we just add output line to trades_map map, and then dump output in a separate cycle.
             #
-            key   = dt.strftime('%Y.%m.%d %H:%M:%S') + '{:08d}'.format(fill.execution.orderId) + fill.execution.execId + ' {}'.format(has_commissionReport)
+            key   = dt.strftime('%Y.%m.%d %H:%M:%S') + '{:08d}'.format(fill.execution.orderId) + fill.execution.execId
      
-            if not key in trades_map:
+            if not key in trades_map or (has_commissionReport and not trades_map[key]['has_commissionReport']):
                 has_new_data = True
             else:
                 ### print 'Warning: duplicate key ({}).'.format(key)
@@ -186,14 +186,17 @@ try:
             #
             # SPX^^^130921P01660000,SPX Sep13 1660 Put,Buy To Open,2,3.15,2.27,0.06,09.12.2013 10:31:15 PM,111111111,222222222,34,-632.33
             #
-            trades_map[key] = '{},{},{},{},{},{},{},{},{},{},34,{}\n'.format(symbol, desc, action, qty, price, commission, req_fees, dt.strftime('%x %X'), transaction_id, order_id, total_cost)
+            trades_map[key] = {
+                               'trade': '{},{},{},{},{},{},{},{},{},{},34,{}\n'.format(symbol, desc, action, qty, price, commission, req_fees, dt.strftime('%x %X'), transaction_id, order_id, total_cost), 
+                               'has_commissionReport': has_commissionReport
+                              }
 
         if has_new_data:       
             with open(output_file, "w") as out:
                 out.write('Symbol, Description, Action, Quantity, Price, Commission, Reg Fees, Date, TransactionID, Order Number, Transaction Type ID, Total Cost\n')
         
                 for key in sorted(trades_map): 
-                    out.write(trades_map[key])
+                    out.write(trades_map[key]['trade'])
 
             if opts.daemon:
                 print('{} TradeLog updated.'.format(datetime.datetime.now().strftime('%H:%M:%S')))
