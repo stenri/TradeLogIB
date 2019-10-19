@@ -168,7 +168,7 @@ try:
         
                 continue       
 
-            total_cost     = qty * price * 100 + commission + req_fees
+            total_cost     = qty * price * int(fill.contract.multiplier) + commission + req_fees
 
             #
             # We want output to be sorted by date/time and order_id, so here we just add output line to trades_map map, and then dump output in a separate cycle.
