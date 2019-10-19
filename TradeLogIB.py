@@ -155,8 +155,11 @@ try:
 
             price = math.fabs(float(fill.execution.price))
 
+            has_commissionReport = False
+
             if hasattr(fill, 'commissionReport'):
                 commission = fill.commissionReport.commission
+                has_commissionReport = True
             else:
                 commission = 0
 
@@ -166,12 +169,11 @@ try:
                 continue       
 
             total_cost     = qty * price * 100 + commission + req_fees
-            #total_cost     = format(total_cost, '.6f')
 
             #
             # We want output to be sorted by date/time and order_id, so here we just add output line to trades_map map, and then dump output in a separate cycle.
             #
-            key   = dt.strftime('%Y.%m.%d %H:%M:%S') + '{:08d}'.format(fill.execution.orderId) + fill.execution.execId
+            key   = dt.strftime('%Y.%m.%d %H:%M:%S') + '{:08d}'.format(fill.execution.orderId) + fill.execution.execId + ' {}'.format(has_commissionReport)
      
             if not key in trades_map:
                 has_new_data = True
