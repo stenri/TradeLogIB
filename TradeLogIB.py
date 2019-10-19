@@ -20,8 +20,8 @@ import math
 import time
 import pytz
 import logging
+import argparse
 import datetime
-import optparse
 import traceback
 
 from tzlocal import get_localzone
@@ -30,8 +30,8 @@ from ib_insync import *
 version = '4.10'
 
 def InitLogging():      
-    if opts.logLevel > 0:
-        logging.basicConfig(level=opts.logLevel, filename='TradeLogIB.log', filemode='w+', format='%(asctime)s: %(threadName)-10s: %(message)s', )
+    if args.logLevel > 0:
+        logging.basicConfig(level=args.logLevel, filename='TradeLogIB.log', filemode='w+', format='%(asctime)s: %(threadName)-10s: %(message)s', )
 
         logging.info('-------------------------------------------------------------------------')
         logging.info('Starting...')
@@ -42,7 +42,7 @@ def InitLogging():
     ch = logging.StreamHandler(sys.stdout)
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     ch.setFormatter(formatter)
-    ch.setLevel(opts.consoleLogLevel)
+    ch.setLevel(args.consoleLogLevel)
     root.addHandler(ch)
 
 def AsTimeZone(dt, src_timezone, dst_timezone):
@@ -63,42 +63,17 @@ def ConverSymbol_IB2OX(symbol):
 
     return ticker.ljust(6, '^') + opra_id 
 
-class MyParser(optparse.OptionParser):
-    def format_epilog(self, formatter):
-        return self.epilog
 
-parser = MyParser(
-                  version     = '%prog version {}'.format(version), 
-                  description = 'IB Trades Dumper.', 
-                  usage       = 'usage: %prog [options] [TradeLogIB.csv]',
-                  epilog      = """
-Examples:
-
-  TradeLogIB.py
-  TradeLogIB.py TradeLogIB.csv
-
-"""
-                 )
-
-parser.add_option('', '--host',            help='Host to connect to (default: 127.0.0.1).', default='127.0.0.1', action='store')
-parser.add_option('', '--port',            help='Port to connect to (default: 4001).', default='4001', action='store')
-parser.add_option('', '--daemon',          help='Turn on deamon mode (default: False).', default=False, action='store_true')
-parser.add_option('', '--UTC',             help='Store trades in UTC timezone, i.e. do not convert time to Local Time Zone) (default: False).', default=False, action='store_true')
-parser.add_option('', '--clientId',        help='Client Id (default: 0).', default='0', action='store')
-parser.add_option('', '--logLevel',        help='Log level for log file output (DEBUG=10, INFO=20, WARNING=30, ERROR: 40, CRITICAL: 50, default: 0).',  default=0, action='store')
-parser.add_option('', '--consoleLogLevel', help='Log level for console output  (DEBUG=10, INFO=20, WARNING=30, ERROR: 40, CRITICAL: 50, default: 20).', default=30, action='store')
-
-(opts, args) = parser.parse_args()
-
-opts.port            = int(opts.port)
-opts.clientId        = int(opts.clientId)
-opts.logLevel        = int(opts.logLevel)
-opts.consoleLogLevel = int(opts.consoleLogLevel)
-
-if len(args) > 0:
-    output_file = args[0]
-else:
-    output_file = 'TradeLogIB.csv'
+ap = argparse.ArgumentParser()
+ap.add_argument('--host',            type=str,  default='127.0.0.1', help='Host to connect to (default: 127.0.0.1).')
+ap.add_argument('--port',            type=int,  default=4001,        help='Port to connect to (default: 4001).')
+ap.add_argument('--clientId',        type=int,  default=0,           help='Client Id (default: 0).')
+ap.add_argument('--daemon',          type=bool, default=False,       help='Turn on deamon mode (default: False).')
+ap.add_argument('--UTC',             type=bool, default=False,       help='Store trades in UTC timezone, i.e. do not convert time to Local Time Zone) (default: False).')
+ap.add_argument('--logLevel',        type=int,  default=0,           help='Log level for log file output (DEBUG=10, INFO=20, WARNING=30, ERROR: 40, CRITICAL: 50, default: 0).')
+ap.add_argument('--consoleLogLevel', type=int,  default=30,          help='Log level for console output  (DEBUG=10, INFO=20, WARNING=30, ERROR: 40, CRITICAL: 50, default: 30).')
+ap.add_argument('--outputFile',      type=str,  default='TradeLogIB.csv', help='Output file (default: TradeLogIB.csv).')
+args = ap.parse_args()
 
 InitLogging()
 
@@ -107,11 +82,11 @@ try:
     locale.setlocale(locale.LC_ALL, 'american')
 
     ib = IB()
-    ib.connect(host=opts.host, port=opts.port, clientId=opts.clientId)
+    ib.connect(host=args.host, port=args.port, clientId=args.clientId)
 
     trades_map = {}
 
-    if opts.daemon:
+    if args.daemon:
         print('Entering daemon mode...')
 
     src_timezone = pytz.utc
@@ -126,7 +101,7 @@ try:
 
             dt = fill.execution.time
 
-            if not opts.UTC:
+            if not args.UTC:
                 dt = AsTimeZone(dt, src_timezone, dst_timezone)
 
             if fill.execution.side == 'BOT':
@@ -163,7 +138,7 @@ try:
             else:
                 commission = 0
 
-                if not opts.daemon:
+                if not args.daemon:
                     logging.warning('Warning: skipping trade as commission detail are not available ({} {} {} {} {})'.format(symbol, desc, action, qty, price))
         
                 continue       
@@ -192,16 +167,16 @@ try:
                               }
 
         if has_new_data:       
-            with open(output_file, "w") as out:
+            with open(args.outputFile, "w") as out:
                 out.write('Symbol, Description, Action, Quantity, Price, Commission, Reg Fees, Date, TransactionID, Order Number, Transaction Type ID, Total Cost\n')
         
                 for key in sorted(trades_map): 
                     out.write(trades_map[key]['trade'])
 
-            if opts.daemon:
+            if args.daemon:
                 print('{} TradeLog updated.'.format(datetime.datetime.now().strftime('%H:%M:%S')))
 
-        if opts.daemon:
+        if args.daemon:
             ib.sleep(1)
         else:
             break
