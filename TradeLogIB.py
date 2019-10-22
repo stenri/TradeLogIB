@@ -72,7 +72,7 @@ ap.add_argument('--daemon',                     default=False,            help='
 ap.add_argument('--UTC',                        default=False,            help='Store trades in UTC timezone, i.e. do not convert time to Local Time Zone)', action='store_true')
 ap.add_argument('--logLevel',        type=int,  default=0,                help='Log level for log file output (DEBUG=10, INFO=20, WARNING=30, ERROR: 40, CRITICAL: 50)')
 ap.add_argument('--consoleLogLevel', type=int,  default=30,               help='Log level for console output  (DEBUG=10, INFO=20, WARNING=30, ERROR: 40, CRITICAL: 50)')
-ap.add_argument('--outputFile',      type=str,  default='TradeLogIB.csv', help='Output file')
+ap.add_argument('outputFile',        type=str,  default='TradeLogIB.csv', help='Output file', nargs='?')
 args = ap.parse_args()
 
 InitLogging()
