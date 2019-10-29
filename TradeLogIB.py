@@ -146,7 +146,7 @@ try:
             #
             # We want output to be sorted by date/time and order_id, so here we just add output line to trades_map map, and then dump output in a separate cycle.
             #
-            key   = dt.strftime('%Y.%m.%d %H:%M:%S') + '{:08d}'.format(fill.execution.orderId) + fill.execution.execId + ' {}'.format(has_commissionReport)
+            key   = dt.strftime('%Y.%m.%d %H:%M:%S') + '{:08d}'.format(fill.execution.orderId) + fill.execution.execId
      
             if not key in trades_map:
                 has_new_data = True
