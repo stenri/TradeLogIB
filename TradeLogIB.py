@@ -27,7 +27,7 @@ import traceback
 from tzlocal import get_localzone
 from ib_insync import *
 
-version = '4.11'
+version = '4.20'
 
 def InitLogging():      
     if args.logLevel > 0:
@@ -76,6 +76,7 @@ ap.add_argument('outputFile',        type=str,  default='TradeLogIB.csv', help='
 args = ap.parse_args()
 
 InitLogging()
+ib = None
 
 try:    
     import locale
@@ -92,7 +93,17 @@ try:
     src_timezone = pytz.utc
     dst_timezone = get_localzone()
 
+    last_processing_time = time.time()   
+
     while True:
+        if args.daemon and time.time() - last_processing_time > 60:
+            #
+            # Reconnect to TWS every 60 sec as a quick fix for ib_insync 'partial fills bug' which reappeared in ib_insync again.
+            #
+            last_processing_time = time.time()
+            ib.disconnect()
+            ib.connect(host=args.host, port=args.port, clientId=args.clientId)
+
         has_new_data = False
 
         for fill in ib.fills():
@@ -179,4 +190,6 @@ try:
 except:
     logging.error('EXCEPTION:\n' + traceback.format_exc()) 
 
-ib.disconnect()
+if ib:
+    ib.disconnect()
+
